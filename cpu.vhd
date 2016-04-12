@@ -26,7 +26,8 @@ signal inm : std_logic_vector (15 downto 0);
 		wait until data_cache_ready='1';
 		--address <= (others => 'Z');
 		IR <= data_in;
-		case IR(31 downto 16) is
+		PC <= PC + 4;
+		case IR(31 downto 26) is
 			when "100011" =>	--LOAD
 				rs <= IR(25 downto 21);
 				rt <= IR(20 downto 16);
@@ -36,7 +37,6 @@ signal inm : std_logic_vector (15 downto 0);
 				wait until data_cache_ready='1';
 				--address <= (others => 'Z');
 				registers(to_integer(unsigned(rt))) <= data_in;
-				PC <= PC + 4;
 			when "101011" =>
 				--STORE
 				rs <= IR(25 downto 21);
@@ -46,16 +46,34 @@ signal inm : std_logic_vector (15 downto 0);
 				address <= (registers(to_integer(unsigned(rs))) + to_integer(unsigned(inm)));
 				--TODO: Add syncro cycles with cache
 
-				PC <= PC + 4;
 			when "000000" =>
 				--ALU REGISTERS
-			when "000100" =>
-				--BEQ
-			when "001101" =>
-				--XORI (ALU inm)
+				if IR(5 dowto 0) == '100000' then -- ADD
+					rs <= IR(25 downto 21);
+					rt <= IR(20 downto 16);
+					rd <= IR(15 downto 11);
+					registers(to_integer(unsigned(rd))) <= (registers(to_integer(unsigned(rs))) + registers(to_integer(unsigned(rt))));
+				end if ;
+			when "000100" => --BEQ
+				rs <= IR(25 downto 21);
+				rt <= IR(20 downto 16);
+				inm <= IR(15 downto 0);
+				if registers(to_integer(unsigned(rs))) == registers(to_integer(unsigned(rt))) then
+					PC <= PC + (to_integer(unsigned(inm)) srl 2);
+				end if ;
+			when "001101" => --XORI (ALU inm)
+				rs <= IR(25 downto 21);
+				rt <= IR(20 downto 16);
+				inm <= IR(15 downto 0);
+				registers(to_integer(unsigned(rt))) <= (registers(to_integer(unsigned(rs))) xor to_integer(unsigned(inm)));
 			when "000010"=>
-				--J
-			--when ...
+				inm <= IR(25 downto 0);
+				PC <= PC + (to_integer(unsigned(inm)) srl 2);
+			when '001000' => --ADDI
+				rs <= IR(25 downto 21);
+				rt <= IR(20 downto 16);
+				inm <= IR(15 downto 0);
+				registers(to_integer(unsigned(rt))) <= (registers(to_integer(unsigned(rs))) + to_integer(unsigned(inm)));
 			when others =>
 
 		end case;
