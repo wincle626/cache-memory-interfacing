@@ -7,7 +7,8 @@ entity cpu is
 			address : out std_logic_vector (ADDRESS_WIDTH-1 downto 0);
 			data_in : in std_logic_vector (DATA_WIDTH-1 downto 0);
 			data_out : out std_logic_vector (DATA_WIDTH-1 downto 0);
-			rw_cache : out std_logic; --1: read, 0: write
+			rw_cache : out std_logic; 		--1: read, 0: write
+			i_d_cache : out std_logic; 		--1: Instruction, 0: Data
 			--enable_cache : out std_logic; necessary?
 			data_cache_ready : in std_logic);
 end cpu;
@@ -19,7 +20,7 @@ signal registers : regs;
 signal rs, rt, rd : std_logic_vector (4 downto 0);
 signal inm : std_logic_vector (15 downto 0);
 
-	FETCH: process
+	process
 	begin
 		address <= PC;
 		rw_cache <= '1';
@@ -48,7 +49,7 @@ signal inm : std_logic_vector (15 downto 0);
 
 			when "000000" =>
 				--ALU REGISTERS
-				if IR(5 dowto 0) == '100000' then -- ADD
+				if IR(5 dowto 0) = '100000' then -- ADD
 					rs <= IR(25 downto 21);
 					rt <= IR(20 downto 16);
 					rd <= IR(15 downto 11);
@@ -58,7 +59,7 @@ signal inm : std_logic_vector (15 downto 0);
 				rs <= IR(25 downto 21);
 				rt <= IR(20 downto 16);
 				inm <= IR(15 downto 0);
-				if registers(to_integer(unsigned(rs))) == registers(to_integer(unsigned(rt))) then
+				if registers(to_integer(unsigned(rs))) = registers(to_integer(unsigned(rt))) then
 					PC <= PC + (to_integer(unsigned(inm)) srl 2);
 				end if ;
 			when "001101" => --XORI (ALU inm)

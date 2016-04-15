@@ -1,0 +1,31 @@
+			# Populate registers t1 and t2 with 15 and 20
+0000			ADDI $t1, $zero, 15
+0001			ADDI $t2, $zero, 20
+
+			# Store content of t1 in memory address 120 and t2 in 124 (Memory allocate brings block to cache)
+0002			SW $t1, 100($t2)
+0003			SW $t2, 104($t2)
+	
+			# Load to t3 and t4 values in memory addresses 30 and 34 (15 and 20) (Values should be in cache)
+0004			LW $t3, 100($t2)
+0005			LW $t4, 104($t2)
+
+			# Xor of 15 and 000..111 (0x00000000) saved in t5.
+0006			XORI $t5, $t3, 0xFFFF
+0007			ADD $t4, $t1, $t2
+
+			# Load to t6 the value of memory address 0x0008 (this instruction) (not in Dcache, so the block is brought to cache)
+0008			LW $t6, 8($zero)
+
+			# Loop to test BEQ and J
+0009			ADDI $t7, $zero, 10
+		
+0010	loop:	ADDI $t7, $t7, 1
+0011			BEQ $t7, $t1, exit
+0012			J loop
+			
+			# Load immediate 0xFEDC to upper 16 bits of t8
+0013	exit: 	LUI $t8, 0xFEDC
+
+			# Restart the program
+0014			JR $zero
