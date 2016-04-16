@@ -12,16 +12,15 @@ entity cpu is
 			rw_cache : out std_logic; 		--1: read, 0: write
 			i_d_cache : out std_logic; 		--1: Instruction, 0: Data
 			cache_enable : out std_logic;
-			--enable_cache : out std_logic; --necessary?
 			data_cache_ready : in std_logic;
-			PC_out : out std_logic_vector (31 downto 0) := (others => '0');
-			IR_out : out std_logic_vector (31 downto 0);
+			PC_out : out std_logic_vector (ADDRESS_WIDTH-1 downto 0) := (others => '0');
+			IR_out : out std_logic_vector (ADDRESS_WIDTH-1 downto 0);
 			MDR_out : out std_logic_vector (DATA_WIDTH-1 downto 0));
 end cpu;
 
 architecture behavioral of cpu is
-signal PC : std_logic_vector (31 downto 0) := (others => '0');
-signal IR : std_logic_vector (31 downto 0);
+signal PC : std_logic_vector (ADDRESS_WIDTH-1 downto 0) := (others => '0');
+signal IR : std_logic_vector (ADDRESS_WIDTH-1 downto 0);
 signal MDR : std_logic_vector (DATA_WIDTH-1 downto 0);
 signal registers : regs;
 signal rs, rt, rd : std_logic_vector (4 downto 0);
@@ -73,7 +72,7 @@ begin
 				elsif ieee.std_logic_unsigned."=" (IR(5 downto 0), "001000") then	--JR
 					rs <= IR(25 downto 21);
 					PC <= registers(to_integer(unsigned(rs)));
-				end if ;
+				end if;
 
 			when "000100" => --BEQ
 				rs <= IR(25 downto 21);
@@ -81,7 +80,7 @@ begin
 				inm <= IR(15 downto 0);
 				if ieee.std_logic_unsigned."=" (registers(to_integer(unsigned(rs))), registers(to_integer(unsigned(rt)))) then
 					PC <= PC + 4 + (to_integer(unsigned(inm))*4);
-				end if ;
+				end if;
 
 			when "001101" => --XORI (ALU inm)
 				rs <= IR(25 downto 21);

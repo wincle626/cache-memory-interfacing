@@ -15,7 +15,7 @@ entity icache is
 			data_cache_ready : out std_logic;
 			mem_enable : out std_logic;
 			mem_rw : out std_logic;
-			mem_data_ready : in std_logic
+			mem_data_ready : in std_logic;
 			IHc : out std_logic);
 end icache;
 
