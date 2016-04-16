@@ -1,9 +1,10 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
 use work.constants.all;
 
 entity dcache is
-	port (	clk : in std_logic:
+	port (	clk : in std_logic;
 			address : in std_logic_vector (ADDRESS_WIDTH-1 downto 0);  --from CPU
 			data_out : out std_logic_vector (DATA_WIDTH-1 downto 0);   --to CPU
 			data_in : in std_logic_vector (DATA_WIDTH-1 downto 0);	   -- from CPU
@@ -12,9 +13,9 @@ entity dcache is
 			bus_out : out std_logic_vector (DATA_WIDTH-1 downto 0);
 			rw_cache : in std_logic; 		--1: read, 0: write
 			i_d_cache : in std_logic; 		--1: Instruction, 0: Data
-			data_cache_ready : out std_logic
-			mem_enable : in std_logic;
-			mem_rw : in std_logic);
+			data_cache_ready : out std_logic;
+			mem_enable : out std_logic;
+			mem_rw : out std_logic);
 end dcache;
 
 architecture behavioral of dcache is
@@ -26,6 +27,9 @@ architecture behavioral of dcache is
 	variable present_block : integer;
 	variable present : boolean := false;
 
+	variable selected_word_offset : integer;
+
+begin
 	process
 	begin
 
@@ -34,20 +38,20 @@ architecture behavioral of dcache is
 		tag <= address(31 downto 7);
 		index <= address(6 downto 4);
 		word_offset <= address(3 downto 2);
-		selected_set <= to_integer(unsigned(index));
-		selected_word_offset <= to_integer(unsigned(word_offset));
+		selected_set := to_integer(unsigned(index));
+		selected_word_offset := to_integer(unsigned(word_offset));
 
-		if cache(selected_set).blocks(0).tag = tag & cache(selected_set).blocks(0).valid = 1 then
-			present_block <= 0;
-			present = true;
-		elsif cache(selected_set).blocks(1).tag = tag & cache(selected_set).blocks(1).valid = 1 then
-		 	present_block <= 1;
-		 	present = true;
+		if cache(selected_set).blocks(0).tag = tag and cache(selected_set).blocks(0).valid = '1' then
+			present_block := 0;
+			present := true;
+		elsif cache(selected_set).blocks(1).tag = tag and cache(selected_set).blocks(1).valid = '1' then
+		 	present_block := 1;
+		 	present := true;
 		else
-			present = false;
+			present := false;
 		end if ;
 
-		if rw_cache = 0 then  --write
+		if rw_cache = '0' then  --write
 			--write to memory
 			mem_address <= address;
 			mem_enable <= '1';
@@ -60,7 +64,7 @@ architecture behavioral of dcache is
 		end if ;
 
 		if present = false then --bring from memory
-			present_block = to_integer(not cache(selected_set).lastused); --selected block --> LRU
+			present_block := to_integer(unsigned(not cache(selected_set).lastused)); --selected block --> LRU
 			for i in 0 to DCACHE_BLOCK_SIZE-1 loop --read four 4 words and save to cache
 				mem_address <= std_logic(unsigned(address) + i);
 				mem_enable <= '1';

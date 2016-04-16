@@ -17,16 +17,19 @@ constant DCACHE_WORD_OFFSET : integer := 3;
 
 type memoryarray is array(0 to MEMORY_SIZE-1) of std_logic_vector(7 downto 0);
 type regs is array(0 to NUM_REGS-1) of std_logic_vector(SIZE_REGS-1 downto 0);
+type blockd is array (0 to DCACHE_BLOCK_SIZE-1) of std_logic_vector(DATA_WIDTH-1 downto 0);
 
 type dblock is record
 	valid		:	std_logic;
 	tag			:	std_logic_vector(DCACHE_TAG_SIZE-1 downto 0);
-	blockdata	:	array(0 to DCACHE_BLOCK_SIZE-1) of std_logic_vector(DATA_WIDTH-1 downto 0);
+	blockdata	:	blockd;
 end record dblock;
 
+type blks is array (0 to DCACHE_SET_SIZE-1) of dblock;
+
 type dset is record
-	blocks		:	array(o to DCACHE_SET_SIZE-1) of dblock;
-	lastused	:	std_logic;
+	blocks		:	blks;
+	lastused	:	std_logic_vector(0 downto 0);
 end record dset;
 
 type dcachearray is array(0 to DCACHE_NUM_SETS-1) of dset;
