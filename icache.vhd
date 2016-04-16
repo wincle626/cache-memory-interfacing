@@ -15,7 +15,8 @@ entity icache is
 			data_cache_ready : out std_logic;
 			mem_enable : out std_logic;
 			mem_rw : out std_logic;
-			mem_data_ready : in std_logic);
+			mem_data_ready : in std_logic
+			IHc : out std_logic);
 end icache;
 
 architecture behavioral of icache is
@@ -50,6 +51,9 @@ begin
 				mem_enable <= '0';
 				wait for 100 ns;
 			end loop ;
+			IHc <= '0';
+		else
+			IHc <= '1';
 		end if ;
 
 		data_out <= cache(selected_block).blockdata(selected_word_offset);

@@ -17,7 +17,8 @@ entity dcache is
 			data_cache_ready : out std_logic;
 			mem_enable : out std_logic;
 			mem_rw : out std_logic;
-			mem_data_ready : in std_logic);
+			mem_data_ready : in std_logic
+			DHc : out std_logic);
 end dcache;
 
 architecture behavioral of dcache is
@@ -45,11 +46,14 @@ begin
 		if (cache(selected_set).blocks(0).tag = tag) and (cache(selected_set).blocks(0).valid = '1') then
 			present_block := 0;
 			present := true;
+			DHc <= '1';
 		elsif (cache(selected_set).blocks(1).tag = tag) and (cache(selected_set).blocks(1).valid = '1') then
 		 	present_block := 1;
 		 	present := true;
+		 	DHc <= '1';
 		else
 			present := false;
+			DHc <= '0';
 		end if ;
 
 		if rw_cache = '0' then  --write
