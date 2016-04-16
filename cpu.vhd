@@ -13,12 +13,16 @@ entity cpu is
 			i_d_cache : out std_logic; 		--1: Instruction, 0: Data
 			cache_enable : out std_logic;
 			--enable_cache : out std_logic; --necessary?
-			data_cache_ready : in std_logic);
+			data_cache_ready : in std_logic;
+			PC_out : out std_logic_vector (31 downto 0) := (others => '0');
+			IR_out : out std_logic_vector (31 downto 0);
+			MDR_out : out std_logic_vector (DATA_WIDTH-1 downto 0));
 end cpu;
 
 architecture behavioral of cpu is
 signal PC : std_logic_vector (31 downto 0) := (others => '0');
 signal IR : std_logic_vector (31 downto 0);
+signal MDR : std_logic_vector (DATA_WIDTH-1 downto 0);
 signal registers : regs;
 signal rs, rt, rd : std_logic_vector (4 downto 0);
 signal inm : std_logic_vector (15 downto 0);
@@ -27,11 +31,13 @@ signal inmj : std_logic_vector (25 downto 0);
 begin
 	process
 	begin
+		PC_out <= PC;
 		address <= PC;
 		rw_cache <= '1';
 		wait until data_cache_ready='1';
 		--address <= (others => 'Z');
 		IR <= data_in;
+		IR_out <= IR;
 		PC <= PC + 4;
 		case IR(31 downto 26) is
 			when "100011" =>		--LOAD
@@ -43,7 +49,9 @@ begin
 				cache_enable <= '1';
 				wait until data_cache_ready='1';
 				--address <= (others => 'Z');
-				registers(to_integer(unsigned(rt))) <= data_in;
+				MDR <= data_in;
+				MDR_out <= MDR;
+				registers(to_integer(unsigned(rt))) <= MDR;
 				cache_enable <= '0';
 			when "101011" =>		--STORE
 				rs <= IR(25 downto 21);
