@@ -7,12 +7,14 @@ entity dcache is
 			address : in std_logic_vector (ADDRESS_WIDTH-1 downto 0);  --from CPU
 			data_out : out std_logic_vector (DATA_WIDTH-1 downto 0);   --to CPU
 			data_in : in std_logic_vector (DATA_WIDTH-1 downto 0);	   -- from CPU
+			mem_address : out std_logic_vector (ADDRESS_WIDTH-1 downto 0);
 			bus_in : in std_logic_vector (DATA_WIDTH-1 downto 0);
 			bus_out : out std_logic_vector (DATA_WIDTH-1 downto 0);
 			rw_cache : in std_logic; 		--1: read, 0: write
 			i_d_cache : in std_logic; 		--1: Instruction, 0: Data
-			--enable_cache : out std_logic; necessary?
-			data_cache_ready : out std_logic);
+			data_cache_ready : out std_logic
+			mem_enable : in std_logic;
+			mem_rw : in std_logic);
 end dcache;
 
 architecture behavioral of dcache is
@@ -35,29 +37,52 @@ architecture behavioral of dcache is
 		selected_set <= to_integer(unsigned(index));
 		selected_word_offset <= to_integer(unsigned(word_offset));
 
-		if cache[selected_set].blocks[0].tag = tag & cache[selected_set].blocks[0].valid = 1 then
+		if cache(selected_set).blocks(0).tag = tag & cache(selected_set).blocks(0).valid = 1 then
 			present_block <= 0;
 			present = true;
-		elsif cache[selected_set].blocks[1].tag = tag & cache[selected_set].blocks[1].valid = 1 then
+		elsif cache(selected_set).blocks(1).tag = tag & cache(selected_set).blocks(1).valid = 1 then
 		 	present_block <= 1;
 		 	present = true;
 		else
 			present = false;
 		end if ;
 
-		if rw_cache = 1 then --read
-			if present = false then --bring from memory
-				--todo read from memory and substitute LRU
-			end if ;
-			data_out <= cache[selected_set].blocks[present_block].blockdata[selected_word_offset];
-		else  --write
-			--todo: write to memory
-			if present = false then --bring from memory
-				--todo read from memory and substitute LRU
-			end if ;
+		if rw_cache = 0 then  --write
+			--write to memory
+			mem_address <= address;
+			mem_enable <= '1';
+			mem_rw <= '0';
+			bus_out <= data_in;
+			wait for 32 ns;
+			wait for 12 ns;
+			mem_enable <= '0';
+			wait for 100 ns;
 		end if ;
+
+		if present = false then --bring from memory
+			present_block = to_integer(not cache(selected_set).lastused); --selected block --> LRU
+			for i in 0 to DCACHE_BLOCK_SIZE-1 loop --read four 4 words and save to cache
+				mem_address <= std_logic(unsigned(address) + i);
+				mem_enable <= '1';
+				mem_rw <= '1';
+				wait for 16 ns;
+				wait until data_ready = '1';
+				cache(selected_set).blocks(present_block).blockdata(i) <= bus_in;
+				mem_enable <= '0';
+				wait for 100 ns;
+			end loop ;
+		end if ;
+
+		if rw_cache = 1 then --read
+			data_out <= cache(selected_set).blocks(present_block).blockdata(selected_word_offset);
+		elsif rw_cache = 0 & present = true -- write and hit, then write to cache
+			cache(selected_set).blocks(present_block).blockdata(selected_word_offset) <= data_in;
+		end if ;
+
+		cache(selected_set).lastused <= std_logic(present_block);
 		wait until clk='1';
 		data_cache_ready <= '1';
+
 	end if ;
 
 	end process;
