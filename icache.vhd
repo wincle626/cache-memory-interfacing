@@ -11,6 +11,7 @@ entity icache is
 			bus_in : in std_logic_vector (DATA_WIDTH-1 downto 0); 		--from mem
 			rw_cache : in std_logic; 		--1: read, 0: write
 			i_d_cache : in std_logic; 		--1: Instruction, 0: Data
+			cache_enable : in std_logic;
 			data_cache_ready : out std_logic;
 			mem_enable : out std_logic;
 			mem_rw : out std_logic;
@@ -28,7 +29,7 @@ begin
 		variable selected_block : integer;
 		variable selected_word_offset : integer;
 	begin
-
+	wait until cache_enable='1';
 	if (i_d_cache = '1') and (rw_cache = '1') then  --inst cache
 		data_cache_ready <= '0';
 		tag <= address(31 downto 9);

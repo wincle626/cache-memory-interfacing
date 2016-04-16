@@ -11,6 +11,7 @@ entity cpu is
 			data_out : out std_logic_vector (DATA_WIDTH-1 downto 0);
 			rw_cache : out std_logic; 		--1: read, 0: write
 			i_d_cache : out std_logic; 		--1: Instruction, 0: Data
+			cache_enable : out std_logic;
 			--enable_cache : out std_logic; --necessary?
 			data_cache_ready : in std_logic);
 end cpu;
@@ -21,6 +22,7 @@ signal IR : std_logic_vector (31 downto 0);
 signal registers : regs;
 signal rs, rt, rd : std_logic_vector (4 downto 0);
 signal inm : std_logic_vector (15 downto 0);
+signal inmj : std_logic_vector (25 downto 0);
 
 begin
 	process
@@ -38,25 +40,29 @@ begin
 				inm <= IR(15 downto 0);
 				address <= (registers(to_integer(unsigned(rs))) + to_integer(unsigned(inm)));
 				rw_cache <= '1';
+				cache_enable <= '1';
 				wait until data_cache_ready='1';
 				--address <= (others => 'Z');
 				registers(to_integer(unsigned(rt))) <= data_in;
+				cache_enable <= '0';
 			when "101011" =>		--STORE
 				rs <= IR(25 downto 21);
 				rt <= IR(20 downto 16);
 				inm <= IR(15 downto 0);
 				rw_cache <= '0';
 				address <= (registers(to_integer(unsigned(rs))) + to_integer(unsigned(inm)));
-				--TODO: Add syncro cycles with cache
-
+				data_out <= registers(to_integer(unsigned(rt)));
+				cache_enable <= '1';
+				wait until data_cache_ready='1';
+				cache_enable <= '0';
 			when "000000" =>
-				if IR(5 downto 0) = "100000" then	--ADD
+				if ieee.std_logic_unsigned."=" (IR(5 downto 0), "100000") then	--ADD
 					rs <= IR(25 downto 21);
 					rt <= IR(20 downto 16);
 					rd <= IR(15 downto 11);
 					registers(to_integer(unsigned(rd))) <= (registers(to_integer(unsigned(rs))) + registers(to_integer(unsigned(rt))));
-				
-				elsif IR(5 downto 0) = "001000" then	--JR
+
+				elsif ieee.std_logic_unsigned."=" (IR(5 downto 0), "001000") then	--JR
 					rs <= IR(25 downto 21);
 					PC <= registers(to_integer(unsigned(rs)));
 				end if ;
@@ -65,7 +71,7 @@ begin
 				rs <= IR(25 downto 21);
 				rt <= IR(20 downto 16);
 				inm <= IR(15 downto 0);
-				if registers(to_integer(unsigned(rs))) = registers(to_integer(unsigned(rt))) then
+				if ieee.std_logic_unsigned."=" (registers(to_integer(unsigned(rs))), registers(to_integer(unsigned(rt)))) then
 					PC <= PC + 4 + (to_integer(unsigned(inm))*4);
 				end if ;
 
@@ -76,8 +82,8 @@ begin
 				registers(to_integer(unsigned(rt))) <= registers(to_integer(unsigned(rs))) xor (x"0000" & inm);
 
 			when "000010"=>	--J
-				inm <= IR(25 downto 0);
-				PC <= PC (31 downto 28) & inm & "00";
+				inmj <= IR(25 downto 0);
+				PC <= PC (31 downto 28) & inmj & "00";
 
 			when "001000" => --ADDI
 				rs <= IR(25 downto 21);
@@ -88,7 +94,7 @@ begin
 			when "001111" => --LUI
 				rt <= IR(20 downto 16);
 				inm <= IR(15 downto 0);
-				registers(to_integer(unsigned(rt))) (31 downto 15) <= inm;
+				registers(to_integer(unsigned(rt))) (31 downto 16) <= inm;
 
 			when others =>
 				PC <= (others => '0');

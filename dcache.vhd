@@ -13,6 +13,7 @@ entity dcache is
 			bus_out : out std_logic_vector (DATA_WIDTH-1 downto 0);		--to mem
 			rw_cache : in std_logic; 		--1: read, 0: write
 			i_d_cache : in std_logic; 		--1: Instruction, 0: Data
+			cache_enable : in std_logic;
 			data_cache_ready : out std_logic;
 			mem_enable : out std_logic;
 			mem_rw : out std_logic;
@@ -32,8 +33,8 @@ begin
 		variable present : boolean := false;
 		variable selected_word_offset : integer;
 	begin
-
-	if i_d_cache = '0' then  --data cache
+	wait until cache_enable='1';
+	if (i_d_cache = '0') then  --data cache
 		data_cache_ready <= '0';
 		tag <= address(31 downto 7);
 		index <= address(6 downto 4);
