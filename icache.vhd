@@ -41,7 +41,7 @@ begin
 		if (cache(selected_block).tag /= tag) or (cache(selected_block).valid = '0') then --not present
 			--bring block from memory
 			for i in 0 to CACHE_BLOCK_SIZE-1 loop --read four 4 words and save to cache
-				mem_address <= std_logic_vector(unsigned(address) + i);
+				mem_address <= std_logic_vector(unsigned(address) + i*4);
 				mem_enable <= '1';
 				mem_rw <= '1';
 				wait for 16 ns;
