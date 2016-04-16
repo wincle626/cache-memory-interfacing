@@ -1,5 +1,7 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
+use IEEE.std_logic_unsigned.all;
+use IEEE.numeric_std.all;
 use work.constants.all;
 
 entity cpu is
@@ -20,6 +22,7 @@ signal registers : regs;
 signal rs, rt, rd : std_logic_vector (4 downto 0);
 signal inm : std_logic_vector (15 downto 0);
 
+begin
 	process
 	begin
 		address <= PC;
@@ -47,7 +50,7 @@ signal inm : std_logic_vector (15 downto 0);
 				--TODO: Add syncro cycles with cache
 
 			when "000000" =>
-				if IR(5 dowto 0) = "100000" then	--ADD
+				if IR(5 downto 0) = "100000" then	--ADD
 					rs <= IR(25 downto 21);
 					rt <= IR(20 downto 16);
 					rd <= IR(15 downto 11);
@@ -63,18 +66,18 @@ signal inm : std_logic_vector (15 downto 0);
 				rt <= IR(20 downto 16);
 				inm <= IR(15 downto 0);
 				if registers(to_integer(unsigned(rs))) = registers(to_integer(unsigned(rt))) then
-					PC <= PC + 4 + (to_integer(unsigned(inm)) sll 2);
+					PC <= PC + 4 + (to_integer(unsigned(inm))*4);
 				end if ;
 
 			when "001101" => --XORI (ALU inm)
 				rs <= IR(25 downto 21);
 				rt <= IR(20 downto 16);
 				inm <= IR(15 downto 0);
-				registers(to_integer(unsigned(rt))) <= (registers(to_integer(unsigned(rs))) xor to_integer(unsigned(inm)));
+				registers(to_integer(unsigned(rt))) <= registers(to_integer(unsigned(rs))) xor (x"0000" & inm);
 
 			when "000010"=>	--J
 				inm <= IR(25 downto 0);
-				PC <= PC + (to_integer(unsigned(inm)) sll 2);
+				PC <= PC (31 downto 28) & inm & "00";
 
 			when "001000" => --ADDI
 				rs <= IR(25 downto 21);
@@ -85,10 +88,10 @@ signal inm : std_logic_vector (15 downto 0);
 			when "001111" => --LUI
 				rt <= IR(20 downto 16);
 				inm <= IR(15 downto 0);
-				registers(to_integer(unsigned(rt))) <= (inm sll 16);
+				registers(to_integer(unsigned(rt))) (31 downto 15) <= inm;
 
 			when others =>
-				PC <= 0;
+				PC <= (others => '0');
 		end case;
 	end process;
 end behavioral;

@@ -16,7 +16,7 @@ end memory;
 
 architecture ram of memory is
 
---TODO: Introduce instructions in memory, make write for 4 words (block)?
+--TODO: Make write for 4 words (block)?
 signal mem : memoryarray := ("00100000", "00001001", "00000000", "00001111",
 								"00100000", "00001010", "00000000", "00010100",
 								"10101101", "01001001", "00000000", "01100100",
@@ -56,9 +56,6 @@ begin
 					 mem(to_integer(unsigned(address_buff_r))+1) & 
 					 mem(to_integer(unsigned(address_buff_r))));
 			data_ready <= '1';
-		--else
-		--	data_out <= (others => 'Z');
-		--	data_ready <= '0';
 		end if;	
 	end process;
 
