@@ -53,6 +53,7 @@ begin
 				address <= (registers(to_integer(unsigned(rs))) + to_integer(unsigned(inm)));
 				rw_cache <= '1';
 				cache_enable <= '1';
+				i_d_cache <= '0';
 				wait until data_cache_ready='1';
 				--address <= (others => 'Z');
 				MDR <= data_in;
