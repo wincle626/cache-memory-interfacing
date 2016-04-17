@@ -31,9 +31,12 @@ begin
 			if bus_control(i) = '1' then
 				bus_data_bir(i) <= (others => 'Z');
 				b(i) <= bus_data_bir(i);
-			else
+			elsif bus_control(i) = '0' then
 				bus_data_bir(i) <= a(i);
 				b(i) <= bus_data_bir(i);
+			else
+				bus_data_bir(i) <= (others => 'Z');
+				b(i) <= (others => 'Z');
 			end if ;
 		end loop;
 

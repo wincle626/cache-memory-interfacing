@@ -9,7 +9,7 @@ entity memory is
 			enable : in std_logic;
 			rw : in std_logic;
 			address : in std_logic_vector (ADDRESS_WIDTH-1 downto 0);
-			data : in std_logic_vector (DATA_WIDTH-1 downto 0);
+			data : inout std_logic_vector (DATA_WIDTH-1 downto 0);
 			--data_in : in std_logic_vector (DATA_WIDTH-1 downto 0);
 			--data_out : out std_logic_vector (DATA_WIDTH-1 downto 0);
 			data_ready : out std_logic);
@@ -18,9 +18,9 @@ end memory;
 architecture ram of memory is
 
 --TODO: Make write for 4 words (block)?
-signal mem : memoryarray := ("00001111", "00000000",  "00001001", "00100000",  
-								"00010100", "00000000", "00001010", "00100000",   
-								"01100100", "00000000", "01001001", "10101101", 
+signal mem : memoryarray := ("00001111", "00000000",  "00001001", "00100000",
+								"00010100", "00000000", "00001010", "00100000",
+								"01100100", "00000000", "01001001", "10101101",
 								"01101000", "00000000", "01001010", "10101101",
 								"01100100", "00000000", "01001011", "10001101",
 								"01101000", "00000000", "01001100", "10001101",
@@ -42,7 +42,7 @@ begin
 		wait until clk='1';
 		if enable='1' and rw='1' then
 			--Memory port access time: 4 cycles
-			data_ready <= '0';				
+			data_ready <= '0';
 			wait until clk='1';
 			wait until clk='1';
 			wait until clk='1';
@@ -52,15 +52,15 @@ begin
 			--Read time: 2 cycles
 			wait until clk='1';
 			wait until clk='1';
-			data <= (mem(to_integer(unsigned(address_buff_r))+3) & 
-					 mem(to_integer(unsigned(address_buff_r))+2) & 
-					 mem(to_integer(unsigned(address_buff_r))+1) & 
+			data <= (mem(to_integer(unsigned(address_buff_r))+3) &
+					 mem(to_integer(unsigned(address_buff_r))+2) &
+					 mem(to_integer(unsigned(address_buff_r))+1) &
 					 mem(to_integer(unsigned(address_buff_r))));
 			data_ready <= '1';
 		elsif rw='1' then
 			data <= (others => 'Z');
 			data_ready <= '0';
-		end if;	
+		end if;
 
 	end process;
 
