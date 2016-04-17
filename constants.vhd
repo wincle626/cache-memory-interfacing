@@ -34,12 +34,21 @@ type dblock is record
 	blockdata	:	cacheblock;
 end record dblock;
 
+constant dblock_0s : dblock := (valid => '0',
+					   tag => (others =>'0'),
+					   blockdata => (others=> (others=>'0'))
+					  );
+
 type blks is array (0 to DCACHE_SET_SIZE-1) of dblock;
 
 type dset is record
 	blocks		:	blks;
 	lastused	:	std_logic;
 end record dset;
+
+constant dset_0s : dset := (blocks => (others => dblock_0s),
+					          lastused => '0'
+					  		  );
 
 type dcachearray is array(0 to DCACHE_NUM_SETS-1) of dset;
 
@@ -50,6 +59,11 @@ type iblock is record
 	tag			:	std_logic_vector(ICACHE_TAG_SIZE-1 downto 0);
 	blockdata	:	cacheblock;
 end record iblock;
+
+constant iblock_0s : iblock := (valid => '0',
+					   tag => (others =>'0'),
+					   blockdata => (others=> (others=>'0'))
+					  );
 
 type icachearray is array(0 to ICACHE_NUM_BLOCKS-1) of iblock;
 

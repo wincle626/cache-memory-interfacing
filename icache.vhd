@@ -20,7 +20,7 @@ entity icache is
 end icache;
 
 architecture behavioral of icache is
-	signal cache : icachearray;
+	signal cache : icachearray := (others => iblock_0s);
 	signal tag : std_logic_vector(ICACHE_TAG_SIZE-1 downto 0);
 	signal index : std_logic_vector(ICACHE_INDEX_SIZE-1 downto 0);
 	signal word_offset : std_logic_vector(ICACHE_WORD_OFFSET-1 downto 0);
@@ -51,6 +51,7 @@ begin
 				mem_enable <= '0';
 				wait for 100 ns;
 			end loop ;
+			cache(selected_block).valid <= '1';
 			IHc <= '0';
 		else
 			IHc <= '1';

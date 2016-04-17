@@ -22,7 +22,7 @@ entity dcache is
 end dcache;
 
 architecture behavioral of dcache is
-	signal cache : dcachearray;
+	signal cache : dcachearray := (others => dset_0s);
 	signal tag : std_logic_vector(DCACHE_TAG_SIZE-1 downto 0);
 	signal index : std_logic_vector(DCACHE_INDEX_SIZE-1 downto 0);
 	signal word_offset : std_logic_vector(DCACHE_WORD_OFFSET-1 downto 0);
@@ -80,6 +80,7 @@ begin
 				mem_enable <= '0';
 				wait for 100 ns;
 			end loop ;
+			cache(selected_set).blocks(present_block).valid <= '1';
 		end if ;
 
 		if rw_cache = '1' then --read
