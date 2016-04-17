@@ -49,7 +49,7 @@ begin
 				--bring block from memory
 				IHc <= '0';
 				for i in 0 to CACHE_BLOCK_SIZE-1 loop --read four 4 words and save to cache
-					mem_address <= std_logic_vector(unsigned(address(31 downto 4) & "0000") + i*4);
+					mem_address <= std_logic_vector(unsigned(std_logic_vector'(address(31 downto 4) & "0000")) + i*4);
 					mem_enable <= '1';
 					mem_rw <= '1';
 					wait until mem_data_ready = '1';
