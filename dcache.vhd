@@ -6,17 +6,17 @@ use work.constants.all;
 entity dcache is
 	port (	clk : in std_logic;
 			address : in std_logic_vector (ADDRESS_WIDTH-1 downto 0);  --from CPU
-			data_out : out std_logic_vector (DATA_WIDTH-1 downto 0);   --to CPU
+			data_out : out std_logic_vector (DATA_WIDTH-1 downto 0) := (others => 'Z');   --to CPU
 			data_in : in std_logic_vector (DATA_WIDTH-1 downto 0);	   -- from CPU
-			mem_address : out std_logic_vector (ADDRESS_WIDTH-1 downto 0); --to mem
+			mem_address : out std_logic_vector (ADDRESS_WIDTH-1 downto 0) := (others => 'Z'); --to mem
 			bus_in : in std_logic_vector (DATA_WIDTH-1 downto 0); 		--from mem
-			bus_out : out std_logic_vector (DATA_WIDTH-1 downto 0);		--to mem
+			bus_out : out std_logic_vector (DATA_WIDTH-1 downto 0) := (others => 'Z');		--to mem
 			rw_cache : in std_logic; 		--1: read, 0: write
 			i_d_cache : in std_logic; 		--1: Instruction, 0: Data
 			cache_enable : in std_logic;
-			data_cache_ready : out std_logic;
-			mem_enable : out std_logic;
-			mem_rw : out std_logic;
+			data_cache_ready : out std_logic := 'Z';
+			mem_enable : out std_logic := 'Z';
+			mem_rw : out std_logic := 'Z';
 			mem_data_ready : in std_logic;
 			DHc : out std_logic);
 end dcache;
@@ -35,11 +35,16 @@ begin
 		variable selected_word_offset : integer;
 	begin
 	wait until cache_enable='1';
+	data_out <= (others => 'Z');
+	data_cache_ready <= 'Z';
 	if (i_d_cache = '0') then  --data cache
 		data_cache_ready <= '0';
 		tag <= address(31 downto 7);
 		index <= address(6 downto 4);
 		word_offset <= address(3 downto 2);
+
+		wait until clk='1'; --cache access 1 cycle
+		
 		selected_set := to_integer(unsigned(index));
 		selected_word_offset := to_integer(unsigned(word_offset));
 
@@ -62,10 +67,10 @@ begin
 			mem_enable <= '1';
 			mem_rw <= '0';
 			bus_out <= data_in;
-			wait for 32 ns;
-			wait for 12 ns;
-			mem_enable <= '0';
-			wait for 100 ns;
+			wait for period*11;	--memory port access + write time memory
+			mem_address <= (others => 'Z');
+			mem_enable <= 'Z';
+			mem_rw <= 'Z';
 		end if ;
 
 		if present = false then --bring from memory
@@ -74,12 +79,13 @@ begin
 				mem_address <= std_logic_vector(unsigned(address) + i*4);
 				mem_enable <= '1';
 				mem_rw <= '1';
-				wait for 16 ns;
 				wait until mem_data_ready = '1';
 				cache(selected_set).blocks(present_block).blockdata(i) <= bus_in;
-				mem_enable <= '0';
-				wait for 100 ns;
+				mem_address <= (others => 'Z');
+				mem_enable <= 'Z';
+				mem_rw <= 'Z';
 			end loop ;
+			cache(selected_set).blocks(present_block).valid <= '1';
 		end if ;
 
 		if rw_cache = '1' then --read
