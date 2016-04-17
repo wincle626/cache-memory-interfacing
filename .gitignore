@@ -1,2 +1,4 @@
 *.o
 *.cf
+tb_mips
+tb_mips.vcd
