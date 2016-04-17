@@ -58,11 +58,11 @@ component dcache
 			DHc : out std_logic);
 end component;
 
---component bus64w
---	port (	clk : in std_logic;
---			bus_in : in std_logic_vector ((64*DATA_WIDTH)-1 downto 0);
---			bus_out : out std_logic_vector ((64*DATA_WIDTH)-1 downto 0));
---end component;
+component bus64w
+	port (	clk : in std_logic;
+			bus_in : in std_logic_vector ((64*DATA_WIDTH)-1 downto 0);
+			bus_out : out std_logic_vector ((64*DATA_WIDTH)-1 downto 0));
+end component;
 
 component memory 
 	port(	clk : in std_logic;
@@ -74,10 +74,12 @@ component memory
 			data_ready : out std_logic);
 end component;
 
-signal address_cc, mem_address : std_logic_vector (ADDRESS_WIDTH-1 downto 0);
-signal data_cache_cpu, data_cpu_cache, data_mem_cache, data_cache_mem : std_logic_vector (DATA_WIDTH-1 downto 0);
+signal address_cc, mem_address1, mem_address2 : std_logic_vector (ADDRESS_WIDTH-1 downto 0);
+signal data_cache_cpu, data_cpu_cache, data_mem_cache1, data_mem_cache2, data_cache_mem1, data_cache_mem2 : std_logic_vector (DATA_WIDTH-1 downto 0);
 signal rw_cache, i_d_cache, data_cache_ready, mem_data_ready, mem_rw, mem_enable, cache_enable : std_logic;
 
+signal bus_aux_1, bus_aux_2 : bussss;
+signal bus_signal : std_logic_vector (31 downto 0);
 begin
 
 	--Monitoring
@@ -87,20 +89,37 @@ begin
 	data_cpu_cache_out <= data_cpu_cache;
 	data_mem_cache_out <= data_mem_cache;
 	data_cache_mem_out <= data_cache_mem;
-	------------------
+	-------------------------------------
 
-	cpu1: cpu
+	--Conexions to bus
+	bus_aux_1(0) <= mem_address1;
+	bus_aux_2(0) <= mem_address2;
+
+	bus_aux_1(1) <= data_mem_cache1;
+	bus_aux_2(1) <= data_mem_cache2;
+
+	bus_aux_1(2) <= data_cache_mem1;
+	bus_aux_2(2) <= data_cache_mem2;
+
+	--el bus de address ponerlo siempre como cache->memory, el de data_cache_mem igual y el otro al revés
+	-------------------------------------
+
+
+	cpu_elem: cpu
 		port map (clk, address_cc, data_cache_cpu, data_cpu_cache, rw_cache, i_d_cache, cache_enable, data_cache_ready, PC_out, IR_out, MDR_out);
 
-	icache1: icache
-		port map (clk, address_cc, data_cache_cpu, mem_address, data_mem_cache, rw_cache, i_d_cache, 
+	icache_elem: icache
+		port map (clk, address_cc, data_cache_cpu, mem_address1, data_mem_cache1, rw_cache, i_d_cache, 
 				  cache_enable, data_cache_ready, mem_enable, mem_rw, mem_data_ready, IHc);
 
-	dcache1: dcache
-		port map (clk, address_cc, data_cache_cpu, data_cpu_cache, mem_address, data_mem_cache, data_cache_mem, 
+	dcache_elem: dcache
+		port map (clk, address_cc, data_cache_cpu, data_cpu_cache, mem_address1, data_mem_cache1, data_cache_mem1, 
 			  	  rw_cache, i_d_cache, cache_enable, data_cache_ready, mem_enable, mem_rw, mem_data_ready, DHc);
 
+	bus_elem: bus 
+		port map (bus_aux_1, bus_aux2);
+
 	memory1: memory
-		port map (clk, mem_enable, mem_rw, mem_address, data_cache_mem, data_mem_cache, mem_data_ready);
+		port map (clk, mem_enable, mem_rw, mem_address2, data_cache_mem2, data_mem_cache2, mem_data_ready);
 
 end struct;
