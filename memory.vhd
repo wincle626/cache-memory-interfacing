@@ -9,8 +9,9 @@ entity memory is
 			enable : in std_logic;
 			rw : in std_logic;
 			address : in std_logic_vector (ADDRESS_WIDTH-1 downto 0);
-			data_in : in std_logic_vector (DATA_WIDTH-1 downto 0);
-			data_out : out std_logic_vector (DATA_WIDTH-1 downto 0);
+			data : in std_logic_vector (DATA_WIDTH-1 downto 0);
+			--data_in : in std_logic_vector (DATA_WIDTH-1 downto 0);
+			--data_out : out std_logic_vector (DATA_WIDTH-1 downto 0);
 			data_ready : out std_logic);
 end memory;
 
@@ -51,12 +52,16 @@ begin
 			--Read time: 2 cycles
 			wait until clk='1';
 			wait until clk='1';
-			data_out <= (mem(to_integer(unsigned(address_buff_r))+3) & 
+			data <= (mem(to_integer(unsigned(address_buff_r))+3) & 
 					 mem(to_integer(unsigned(address_buff_r))+2) & 
 					 mem(to_integer(unsigned(address_buff_r))+1) & 
 					 mem(to_integer(unsigned(address_buff_r))));
 			data_ready <= '1';
+		elsif rw='1' then
+			data <= (others => 'Z');
+			data_ready <= '0';
 		end if;	
+
 	end process;
 
 	WRITE_MEM: process 	--WRITE
@@ -78,10 +83,10 @@ begin
 			wait until clk='1';
 			wait until clk='1';
 			wait until clk='1';
-			mem(to_integer(unsigned(address_buff_w))) <= data_in(7 downto 0);
-			mem(to_integer(unsigned(address_buff_w))+1) <= data_in(15 downto 8);
-			mem(to_integer(unsigned(address_buff_w))+2) <= data_in(23 downto 16);
-			mem(to_integer(unsigned(address_buff_w))+3) <= data_in(31 downto 24);
+			mem(to_integer(unsigned(address_buff_w))) <= data(7 downto 0);
+			mem(to_integer(unsigned(address_buff_w))+1) <= data(15 downto 8);
+			mem(to_integer(unsigned(address_buff_w))+2) <= data(23 downto 16);
+			mem(to_integer(unsigned(address_buff_w))+3) <= data(31 downto 24);
 		end if;
 	end process;
 
