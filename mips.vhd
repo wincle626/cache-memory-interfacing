@@ -60,8 +60,9 @@ end component;
 
 component bus64w
 	port (	clk : in std_logic;
-			bus_in : in std_logic_vector ((64*DATA_WIDTH)-1 downto 0);
-			bus_out : out std_logic_vector ((64*DATA_WIDTH)-1 downto 0));
+			bus_data_l : inout busdataarray (BUS_SIZE-1 downto 0);
+			bus_data_r : inout busdataarray (BUS_SIZE-1 downto 0);
+			bus_control : in buscontrolarray (BUS_SIZE-1 downto 0)); --left side wants to (1: read, 0: write) from/to the right side
 end component;
 
 component memory 
@@ -74,34 +75,35 @@ component memory
 			data_ready : out std_logic);
 end component;
 
-signal address_cc, mem_address1, mem_address2 : std_logic_vector (ADDRESS_WIDTH-1 downto 0);
-signal data_cache_cpu, data_cpu_cache, data_mem_cache1, data_mem_cache2, data_cache_mem1, data_cache_mem2 : std_logic_vector (DATA_WIDTH-1 downto 0);
+signal address_cc, mem_address_m, mem_address_c : std_logic_vector (ADDRESS_WIDTH-1 downto 0);
+signal data_cache_cpu, data_cpu_cache, data_mem_cache_m, data_mem_cache_c, data_cache_mem_m, data_cache_mem_c : std_logic_vector (DATA_WIDTH-1 downto 0);
 signal rw_cache, i_d_cache, data_cache_ready, mem_data_ready, mem_rw, mem_enable, cache_enable : std_logic;
 
-signal bus_aux_1, bus_aux_2 : bussss;
-signal bus_signal : std_logic_vector (31 downto 0);
+signal bus_conex_l, bus_conex_r : busdataarray (BUS_SIZE-1 downto 0);
+signal bus_control : buscontrolarray (BUS_SIZE-1 downto 0);
+
 begin
 
 	--Monitoring
 	address_cc_out <= address_cc;
-	mem_address_out <= mem_address;
+	mem_address_out <= mem_address_m;
 	data_cache_cpu_out <= data_cache_cpu;
 	data_cpu_cache_out <= data_cpu_cache;
-	data_mem_cache_out <= data_mem_cache;
-	data_cache_mem_out <= data_cache_mem;
+	data_mem_cache_out <= data_mem_cache_m;
+	data_cache_mem_out <= data_cache_mem_c;
 	-------------------------------------
 
 	--Conexions to bus
-	bus_aux_1(0) <= mem_address1;
-	bus_aux_2(0) <= mem_address2;
+	bus_conex_l(0) <= mem_address_c;
+	bus_conex_r(0) <= mem_address_m;
 
-	bus_aux_1(1) <= data_mem_cache1;
-	bus_aux_2(1) <= data_mem_cache2;
+	bus_conex_l(1) <= data_mem_cache_c;
+	bus_conex_r(1) <= data_mem_cache_m;
 
-	bus_aux_1(2) <= data_cache_mem1;
-	bus_aux_2(2) <= data_cache_mem2;
+	bus_conex_l(2) <= data_cache_mem_c;
+	bus_conex_r(2) <= data_cache_mem_m;
 
-	--el bus de address ponerlo siempre como cache->memory, el de data_cache_mem igual y el otro al revés
+	bus_control <= ('0', '1', '0', others => '0');
 	-------------------------------------
 
 
@@ -109,17 +111,17 @@ begin
 		port map (clk, address_cc, data_cache_cpu, data_cpu_cache, rw_cache, i_d_cache, cache_enable, data_cache_ready, PC_out, IR_out, MDR_out);
 
 	icache_elem: icache
-		port map (clk, address_cc, data_cache_cpu, mem_address1, data_mem_cache1, rw_cache, i_d_cache, 
+		port map (clk, address_cc, data_cache_cpu, mem_address_c, data_mem_cache_c, rw_cache, i_d_cache, 
 				  cache_enable, data_cache_ready, mem_enable, mem_rw, mem_data_ready, IHc);
 
 	dcache_elem: dcache
-		port map (clk, address_cc, data_cache_cpu, data_cpu_cache, mem_address1, data_mem_cache1, data_cache_mem1, 
+		port map (clk, address_cc, data_cache_cpu, data_cpu_cache, mem_address_c, data_mem_cache_c, data_cache_mem_c, 
 			  	  rw_cache, i_d_cache, cache_enable, data_cache_ready, mem_enable, mem_rw, mem_data_ready, DHc);
 
-	bus_elem: bus 
-		port map (bus_aux_1, bus_aux2);
+	bus_elem: bus64w
+		port map (clk, bus_conex_l, bus_conex_r, bus_control);
 
-	memory1: memory
-		port map (clk, mem_enable, mem_rw, mem_address2, data_cache_mem2, data_mem_cache2, mem_data_ready);
+	memory_elem: memory
+		port map (clk, mem_enable, mem_rw, mem_address_m, data_cache_mem_m, data_mem_cache_m, mem_data_ready);
 
 end struct;
