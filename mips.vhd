@@ -24,23 +24,7 @@ component cpu
 			MDR_out : out std_logic_vector (DATA_WIDTH-1 downto 0));
 end component;
 
-component icache
-	port (	clk : in std_logic;
-			address : in std_logic_vector (ADDRESS_WIDTH-1 downto 0);  --from CPU
-			data_out : out std_logic_vector (DATA_WIDTH-1 downto 0);   --to CPU
-			mem_address : out std_logic_vector (ADDRESS_WIDTH-1 downto 0); --to mem
-			bus_in : in std_logic_vector (DATA_WIDTH-1 downto 0); 		--from mem
-			rw_cache : in std_logic; 		--1: read, 0: write
-			i_d_cache : in std_logic; 		--1: Instruction, 0: Data
-			cache_enable : in std_logic;
-			data_cache_ready : out std_logic;
-			mem_enable : out std_logic;
-			mem_rw : out std_logic;
-			mem_data_ready : in std_logic;
-			IHc : out std_logic);
-end component;
-
-component dcache
+component cache is
 	port (	clk : in std_logic;
 			address : in std_logic_vector (ADDRESS_WIDTH-1 downto 0);  --from CPU
 			data_out : out std_logic_vector (DATA_WIDTH-1 downto 0);   --to CPU
@@ -51,11 +35,12 @@ component dcache
 			rw_cache : in std_logic; 		--1: read, 0: write
 			i_d_cache : in std_logic; 		--1: Instruction, 0: Data
 			cache_enable : in std_logic;
-			data_cache_ready : out std_logic;
-			mem_enable : out std_logic;
-			mem_rw : out std_logic;
+			data_cache_ready : out std_logic := 'Z';
+			mem_enable : out std_logic := 'Z';
+			mem_rw : out std_logic := 'Z';
 			mem_data_ready : in std_logic;
-			DHc : out std_logic);
+			DHc : out std_logic;
+			IHc : out std_logic);
 end component;
 
 --component bus64w
@@ -89,18 +74,14 @@ begin
 	data_cache_mem_out <= data_cache_mem;
 	------------------
 
-	cpu1: cpu
+	cpu_elem: cpu
 		port map (clk, address_cc, data_cache_cpu, data_cpu_cache, rw_cache, i_d_cache, cache_enable, data_cache_ready, PC_out, IR_out, MDR_out);
 
-	icache1: icache
-		port map (clk, address_cc, data_cache_cpu, mem_address, data_mem_cache, rw_cache, i_d_cache, 
-				  cache_enable, data_cache_ready, mem_enable, mem_rw, mem_data_ready, IHc);
-
-	dcache1: dcache
+	cache_elem: cache
 		port map (clk, address_cc, data_cache_cpu, data_cpu_cache, mem_address, data_mem_cache, data_cache_mem, 
-			  	  rw_cache, i_d_cache, cache_enable, data_cache_ready, mem_enable, mem_rw, mem_data_ready, DHc);
+			  	  rw_cache, i_d_cache, cache_enable, data_cache_ready, mem_enable, mem_rw, mem_data_ready, DHc, IHc);
 
-	memory1: memory
+	memory_elem: memory
 		port map (clk, mem_enable, mem_rw, mem_address, data_cache_mem, data_mem_cache, mem_data_ready);
 
 end struct;
