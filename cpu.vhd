@@ -34,6 +34,7 @@ begin
 
 	process
 	begin
+		wait until clk='1';
 		address <= PC;
 		rw_cache <= '1';
 		i_d_cache <= '1';
@@ -42,6 +43,7 @@ begin
 		IR <= data_in;
 		cache_enable <= '0';
 		PC <= PC + 4;
+		wait until clk='1';
 		case IR(31 downto 26) is
 			when "100011" =>		--LOAD
 				rs <= IR(25 downto 21);
@@ -66,6 +68,7 @@ begin
 				address <= (registers(to_integer(unsigned(rs))) + to_integer(unsigned(inm)));
 				data_out <= registers(to_integer(unsigned(rt)));
 				cache_enable <= '1';
+				i_d_cache <= '0';
 				wait until data_cache_ready='1';
 				cache_enable <= '0';
 			when "000000" =>
