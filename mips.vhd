@@ -63,7 +63,9 @@ component bus64w is
 			bus_data_in : in busdataarray (BUS_SIZE-1 downto 0) := (others => (others => '0')); --from chace
 			bus_data_out : out busdataarray (BUS_SIZE-1 downto 0) := (others => (others => '0')); --to cache
 			bus_data_bir : inout busdataarray (BUS_SIZE-1 downto 0) := (others => (others => '0')); --from/to mem
-			bus_control : in buscontrolarray (BUS_SIZE-1 downto 0)); --cache wants to (1: read, 0: write->enable bir output) from/to the mem
+			bus_control : in buscontrolarray (BUS_SIZE-1 downto 0); --cache wants to (1: read, 0: write->enable bir output) from/to the mem
+			bus_bir_ready : in buscontrolarray (BUS_SIZE-1 downto 0);
+			bus_out_ready : out buscontrolarray (BUS_SIZE-1 downto 0));
 end component;
 
 component memory is
@@ -82,7 +84,7 @@ signal data_cache_cpu, data_cpu_cache, data_mem_cache_c, data_bir_mem, data_cach
 signal rw_cache, i_d_cache, data_cache_ready, mem_data_ready, mem_rw, mem_enable, cache_enable : std_logic;
 
 signal bus_conex_in, bus_conex_out, bus_conex_bir : busdataarray (BUS_SIZE-1 downto 0);
-signal bus_control : buscontrolarray (BUS_SIZE-1 downto 0);
+signal bus_control, bus_bir_ready, bus_out_ready : buscontrolarray (BUS_SIZE-1 downto 0);
 
 begin
 
@@ -103,6 +105,8 @@ begin
 	bus_conex_out <= (data_mem_cache_c, others => (others => '0'));
 	bus_conex_bir <= (data_bir_mem, others => (others => '0'));
 	bus_control <= (mem_rw, others => '0');
+	bus_bir_ready <= (mem_data_ready, others => '0');
+
 
 	-------------------------------------
 
@@ -112,14 +116,14 @@ begin
 
 	icache_elem: icache
 		port map (clk, address_cc, data_cache_cpu, mem_address_c, data_mem_cache_c, rw_cache, i_d_cache,
-				  cache_enable, data_cache_ready, mem_enable, mem_rw, mem_data_ready, IHc);
+				  cache_enable, data_cache_ready, mem_enable, mem_rw, bus_out_ready(BUS_SIZE-1), IHc);
 
 	dcache_elem: dcache
 		port map (clk, address_cc, data_cache_cpu, data_cpu_cache, mem_address_c, data_mem_cache_c, data_cache_mem_c,
-			  	  rw_cache, i_d_cache, cache_enable, data_cache_ready, mem_enable, mem_rw, mem_data_ready, DHc);
+			  	  rw_cache, i_d_cache, cache_enable, data_cache_ready, mem_enable, mem_rw, bus_out_ready(BUS_SIZE-1), DHc);
 
 	bus_elem: bus64w
-		port map (clk, bus_conex_in, bus_conex_out, bus_conex_bir, bus_control);
+		port map (clk, bus_conex_in, bus_conex_out, bus_conex_bir, bus_control, bus_bir_ready, bus_out_ready);
 
 	memory_elem: memory
 		port map (clk, mem_enable, mem_rw, mem_address_m, data_bir_mem, mem_data_ready);
