@@ -51,7 +51,7 @@ begin
 		iindex <= address(8 downto 4);
 		iword_offset <= address(3 downto 2);
 
-		wait until clk='1'; --cache access 1 cycle
+		wait until clk='1';
 
 		selected_block := to_integer(unsigned(iindex));
 		selected_word_offset := to_integer(unsigned(iword_offset));
@@ -78,7 +78,7 @@ begin
 		end if ;
 
 		data_out <= icache(selected_block).blockdata(selected_word_offset);
-		wait until clk='1';
+		--wait until clk='1'; --cache access 1 cycle
 		data_cache_ready <= '1';
 		IHc <= '0';
 
@@ -117,7 +117,9 @@ begin
 			mem_address <= (others => 'Z');
 			mem_enable <= '0';
 			mem_rw <= 'Z';
-			wait until clk='1';
+			if present = false then
+				wait until clk='1';
+			end if ;
 		end if ;
 
 		if present = false then --bring from memory
@@ -145,7 +147,7 @@ begin
 		end if ;
 
 		cache(selected_set).lastused <= std_logic(to_unsigned(present_block, 1)(0));
-		wait until clk='1';
+		--wait until clk='1';
 		data_cache_ready <= '1';
 		DHc <= '0';
 
