@@ -38,7 +38,12 @@ signal address_buff_r, address_buff_w : std_logic_vector (ADDRESS_WIDTH-1 downto
 
 begin
 	READ_MEM: process 		--READ
+	variable initialization : boolean := false;
 	begin
+		if initialization = false then
+			data <= (others => 'Z');
+			initialization := true;
+		end if ;
 		wait until clk='1' and enable='1';
 		if rw='1' then
 			--Memory port access time: 4 cycles
