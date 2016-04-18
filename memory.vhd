@@ -39,8 +39,8 @@ signal address_buff_r, address_buff_w : std_logic_vector (ADDRESS_WIDTH-1 downto
 begin
 	READ_MEM: process 		--READ
 	begin
-		wait until clk='1';
-		if enable='1' and rw='1' then
+		wait until clk='1' and enable='1';
+		if rw='1' then
 			--Memory port access time: 4 cycles
 			data_ready <= '0';
 			wait until clk='1';
@@ -57,7 +57,7 @@ begin
 					 mem(to_integer(unsigned(address_buff_r))+1) &
 					 mem(to_integer(unsigned(address_buff_r))));
 			data_ready <= '1';
-		elsif rw='1' then
+			wait until enable='0';
 			data <= (others => 'Z');
 			data_ready <= '0';
 		end if;
