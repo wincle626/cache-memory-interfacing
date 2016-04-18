@@ -20,6 +20,8 @@ constant ICACHE_NUM_BLOCKS : integer := 32;
 constant ICACHE_INDEX_SIZE : integer := 5;
 constant ICACHE_WORD_OFFSET : integer := 2;
 
+constant BUS_SIZE : integer := 64;
+
 type memoryarray is array(0 to MEMORY_SIZE-1) of std_logic_vector(7 downto 0);
 type regs is array(0 to NUM_REGS-1) of std_logic_vector(SIZE_REGS-1 downto 0);
 
@@ -52,6 +54,10 @@ type iblock is record
 end record iblock;
 
 type icachearray is array(0 to ICACHE_NUM_BLOCKS-1) of iblock;
+
+--Bus
+type busdataarray is array (natural range <>) of std_logic_vector(DATA_WIDTH-1 downto 0);
+type buscontrolarray is array (natural range <>) of std_logic;
 
 --Aux functions
 function to_integer( s : std_logic ) return integer;

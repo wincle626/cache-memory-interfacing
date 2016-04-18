@@ -52,8 +52,8 @@ begin
 				wait until clk='1';
 				address <= (registers(to_integer(unsigned(rs))) + to_integer(unsigned(inm)));
 				rw_cache <= '1';
-				cache_enable <= '1';
 				i_d_cache <= '0';
+				cache_enable <= '1';
 				wait until data_cache_ready='1';
 				--address <= (others => 'Z');
 				MDR <= data_in;
@@ -68,8 +68,8 @@ begin
 				rw_cache <= '0';
 				address <= (registers(to_integer(unsigned(rs))) + to_integer(unsigned(inm)));
 				data_out <= registers(to_integer(unsigned(rt)));
-				cache_enable <= '1';
 				i_d_cache <= '0';
+				cache_enable <= '1';
 				wait until data_cache_ready='1';
 				cache_enable <= '0';
 			when "000000" =>

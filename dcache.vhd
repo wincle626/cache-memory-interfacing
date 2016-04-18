@@ -69,7 +69,7 @@ begin
 			bus_out <= data_in;
 			wait for period*11;	--memory port access + write time memory
 			mem_address <= (others => 'Z');
-			mem_enable <= 'Z';
+			mem_enable <= '0';
 			mem_rw <= 'Z';
 		end if ;
 
@@ -80,9 +80,10 @@ begin
 				mem_enable <= '1';
 				mem_rw <= '1';
 				wait until mem_data_ready = '1';
+				wait until clk='1';
 				cache(selected_set).blocks(present_block).blockdata(i) <= bus_in;
 				mem_address <= (others => 'Z');
-				mem_enable <= 'Z';
+				mem_enable <= '0';
 				mem_rw <= 'Z';
 			end loop ;
 			cache(selected_set).blocks(present_block).valid <= '1';

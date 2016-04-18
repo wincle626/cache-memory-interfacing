@@ -8,7 +8,7 @@ ANALYSIS=gtkwave
 
 # You should change source name, executable name and testunit name
 
-SOURCES=constants.vhd memory.vhd icache.vhd dcache.vhd cpu.vhd mips.vhd tb_mips.vhd
+SOURCES=constants.vhd memory.vhd cache.vhd bus.vhd cpu.vhd mips.vhd tb_mips.vhd
 OBJECTS=$(SOURCES:.vhd=.o)
 EXECUTABLE=$(TESTUNIT)
 TESTUNIT=tb_mips
@@ -26,7 +26,7 @@ $(OBJECTS): $(SOURCES)
 wave:
 	# If you use gtk-wave.app, use line below
 	# open $(TESTUNIT).vcd
-	$(ANALYSIS) $(TESTUNIT).vcd
+	$(ANALYSIS) $(TESTUNIT).vcd &
 
 clean:
 	rm -rf *.o $(TESTUNITFILE) $(TESTUNIT) work-obj93.cf
