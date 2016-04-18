@@ -60,14 +60,8 @@ begin
 			wait until enable='0';
 			data <= (others => 'Z');
 			data_ready <= '0';
-		end if;
 
-	end process;
-
-	WRITE_MEM: process 	--WRITE
-	begin
-		wait until clk='1';
-		if enable='1' and rw='0' then
+		elsif rw='0' then
 			--Memory port access time: 8 cycles
 			wait until clk='1';
 			wait until clk='1';
@@ -87,6 +81,9 @@ begin
 			mem(to_integer(unsigned(address_buff_w))+1) <= data(15 downto 8);
 			mem(to_integer(unsigned(address_buff_w))+2) <= data(23 downto 16);
 			mem(to_integer(unsigned(address_buff_w))+3) <= data(31 downto 24);
+			data_ready <= '1';
+			wait until enable='0';
+			data_ready <= '0';
 		end if;
 	end process;
 

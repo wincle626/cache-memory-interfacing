@@ -53,10 +53,12 @@ begin
 					mem_enable <= '1';
 					mem_rw <= '1';
 					wait until mem_data_ready = '1';
+					wait until clk='1';
 					cache(selected_block).blockdata(i) <= bus_in;
 					mem_address <= (others => 'Z');
-					mem_enable <= 'Z';
+					mem_enable <= '0';
 					mem_rw <= 'Z';
+					wait until mem_data_ready = '0';
 				end loop ;
 				cache(selected_block).valid <= '1';
 			else

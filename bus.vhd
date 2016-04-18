@@ -17,6 +17,7 @@ architecture behavioral of bus64w is
 	signal b : busdataarray(BUS_SIZE-1 downto 0);
 	signal out_ready : buscontrolarray (BUS_SIZE-1 downto 0) := (others => '0');
 	signal aux_out : std_logic_vector(DATA_WIDTH-1 downto 0);
+	signal aux_in : std_logic_vector(DATA_WIDTH-1 downto 0);
 	signal aux_b : std_logic_vector(DATA_WIDTH-1 downto 0);
 begin
 	process
@@ -30,7 +31,7 @@ begin
 		    	a(i) <= bus_data_in(i);
 		    	bus_data_out(i) <= b(i);
 		    	aux_out <= b(BUS_SIZE-1);
-		    	bus_data_out(BUS_SIZE-1) <= b(BUS_SIZE-1);
+		    	aux_in <= a(BUS_SIZE-1);
 		    end loop;
 		    bus_out_ready <= out_ready;
 	end process;
@@ -39,7 +40,6 @@ begin
 	begin
 
 		for i in bus_control' range loop
-			out_ready(i) <= bus_bir_ready(i);
 			if bus_control(i) = '1' then
 				bus_data_bir(i) <= (others => 'Z');
 				b(i) <= bus_data_bir(i);
@@ -50,6 +50,7 @@ begin
 				bus_data_bir(i) <= (others => 'Z');
 				b(i) <= (others => 'Z');
 			end if ;
+			out_ready(i) <= bus_bir_ready(i);
 		end loop;
 			aux_b <= bus_data_bir(0);
 
