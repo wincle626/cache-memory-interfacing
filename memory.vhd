@@ -17,7 +17,6 @@ end memory;
 
 architecture ram of memory is
 
---TODO: Make write for 4 words (block)?
 signal mem : memoryarray := ("00001111", "00000000",  "00001001", "00100000",
 								"00010100", "00000000", "00001010", "00100000",
 								"01100100", "00000000", "01001001", "10101101",
@@ -34,6 +33,7 @@ signal mem : memoryarray := ("00001111", "00000000",  "00001001", "00100000",
 								"11011100", "11111110", "00011000", "00111100",
 								"00001000",	"00000000", "00000000", "00000000",
 								others => (others => '0'));
+
 signal address_buff_r, address_buff_w : std_logic_vector (ADDRESS_WIDTH-1 downto 0);
 
 begin

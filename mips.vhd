@@ -91,8 +91,6 @@ begin
 	bus_conex_bir <= (data_bir_mem, others => (others => '0'));
 	bus_control <= (mem_rw, others => '0');
 	bus_bir_ready <= (mem_data_ready, others => '0');
-	--bus_conex_out(BUS_SIZE-1) <=
-
 
 	-------------------------------------
 
@@ -103,7 +101,6 @@ begin
 	cache_elem: cache
 		port map (clk, address_cc, data_cache_cpu, data_cpu_cache, mem_address_c, data_mem_cache_c, data_cache_mem_c,
 			  	  rw_cache, i_d_cache, cache_enable, data_cache_ready, mem_enable, mem_rw, bus_out_ready(BUS_SIZE-1), DHc, IHc);
-
 
 	bus_elem: bus64w
 		port map (clk, bus_conex_in, bus_conex_out, bus_conex_bir, bus_control, bus_bir_ready, bus_out_ready);

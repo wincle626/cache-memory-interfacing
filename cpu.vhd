@@ -54,8 +54,7 @@ begin
 				rw_cache <= '1';
 				i_d_cache <= '0';
 				cache_enable <= '1';
-				wait until data_cache_ready='1';
-				--address <= (others => 'Z');
+				wait until data_cache_ready='1'; --Wait until cache brings the data
 				MDR <= data_in;
 				wait until clk='1';
 				registers(to_integer(unsigned(rt))) <= MDR;
@@ -70,7 +69,7 @@ begin
 				data_out <= registers(to_integer(unsigned(rt)));
 				i_d_cache <= '0';
 				cache_enable <= '1';
-				wait until data_cache_ready='1';
+				wait until data_cache_ready='1'; --Wait until cache finishes writing the data
 				cache_enable <= '0';
 			when "000000" =>
 				if ieee.std_logic_unsigned."=" (IR(5 downto 0), "100000") then	--ADD
@@ -120,7 +119,7 @@ begin
 				wait until clk='1';
 				registers(to_integer(unsigned(rt))) (31 downto 16) <= inm;
 
-			when others =>
+			when others => --Should not happen. If so, go to first instruction
 				wait until clk='1';
 				PC <= (others => '0');
 		end case;

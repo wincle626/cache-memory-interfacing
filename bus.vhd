@@ -8,8 +8,8 @@ entity bus64w is
 			bus_data_out : out busdataarray (BUS_SIZE-1 downto 0); --to cache
 			bus_data_bir : inout busdataarray (BUS_SIZE-1 downto 0); --from/to mem
 			bus_control : in buscontrolarray (BUS_SIZE-1 downto 0) := (others => '0'); --cache wants to (1: read, 0: write->enable bir output) from/to the mem
-			bus_bir_ready : in buscontrolarray (BUS_SIZE-1 downto 0) := (others => '0');
-			bus_out_ready : out buscontrolarray (BUS_SIZE-1 downto 0) := (others => '0'));
+			bus_bir_ready : in buscontrolarray (BUS_SIZE-1 downto 0) := (others => '0'); --mem is ready
+			bus_out_ready : out buscontrolarray (BUS_SIZE-1 downto 0) := (others => '0')); --inform cache that memory is ready
 end bus64w;
 
 architecture behavioral of bus64w is
