@@ -18,8 +18,8 @@ entity cache is
 			mem_enable : out std_logic := 'Z';
 			mem_rw : out std_logic := 'Z';
 			mem_data_ready : in std_logic;
-			DHc : out std_logic;
-			IHc : out std_logic);
+			DHc : out std_logic := '0';
+			IHc : out std_logic := '0');
 end cache;
 
 architecture behavioral of cache is
@@ -32,9 +32,27 @@ architecture behavioral of cache is
 	signal itag : std_logic_vector(ICACHE_TAG_SIZE-1 downto 0);
 	signal iindex : std_logic_vector(ICACHE_INDEX_SIZE-1 downto 0);
 	signal iword_offset : std_logic_vector(ICACHE_WORD_OFFSET-1 downto 0);
+	signal DHc_sig : std_logic := '0';
+	signal IHc_sig : std_logic := '0';
 
 begin
-	process
+	UPDATE_IHIT_FLAG: process
+	begin
+		wait until IHc_sig = '1';
+		IHc <= '1';
+		wait until clk='1';
+		IHc <= '0';
+	end process;
+
+	UPDATE_DHIT_FLAG: process
+	begin
+		wait until DHc_sig = '1';
+		DHc <= '1';
+		wait until clk='1';
+		DHc <= '0';
+	end process;
+
+	CACHE_PROC: process
 		variable selected_set : integer;
 		variable present_block : integer;
 		variable present : boolean := false;
@@ -50,15 +68,15 @@ begin
 		itag <= address(31 downto 9);
 		iindex <= address(8 downto 4);
 		iword_offset <= address(3 downto 2);
+		IHc_sig <= '0';
 
 		wait until clk='1';
-
 		selected_block := to_integer(unsigned(iindex));
 		selected_word_offset := to_integer(unsigned(iword_offset));
 
 		if (icache(selected_block).tag /= itag) or (icache(selected_block).valid = '0') then --not present
 			--bring block from memory
-			IHc <= '0';
+			IHc_sig <= '0';
 			for i in 0 to CACHE_BLOCK_SIZE-1 loop --read four 4 words and save to cache
 				mem_address <= std_logic_vector(unsigned(std_logic_vector'(address(31 downto 4) & "0000")) + i*4);
 				mem_enable <= '1';
@@ -74,20 +92,19 @@ begin
 			icache(selected_block).valid <= '1';
 			icache(selected_block).tag <= itag;
 		else
-			IHc <= '1';
+			IHc_sig <= '1';
 		end if ;
 
 		data_out <= icache(selected_block).blockdata(selected_word_offset);
 		--wait until clk='1'; --cache access 1 cycle
 		data_cache_ready <= '1';
-		IHc <= '0';
 
 	elsif (i_d_cache = '0') then  --data cache
 		data_cache_ready <= '0';
 		tag <= address(31 downto 7);
 		index <= address(6 downto 4);
 		word_offset <= address(3 downto 2);
-
+		DHc_sig <= '0';
 		wait until clk='1'; --cache access 1 cycle
 
 		selected_set := to_integer(unsigned(index));
@@ -96,14 +113,14 @@ begin
 		if (cache(selected_set).blocks(0).tag = tag) and (cache(selected_set).blocks(0).valid = '1') then
 			present_block := 0;
 			present := true;
-			DHc <= '1';
+			DHc_sig <= '1';
 		elsif (cache(selected_set).blocks(1).tag = tag) and (cache(selected_set).blocks(1).valid = '1') then
 		 	present_block := 1;
 		 	present := true;
-		 	DHc <= '1';
+		 	DHc_sig <= '1';
 		else
 			present := false;
-			DHc <= '0';
+			DHc_sig <= '0';
 		end if ;
 
 		if rw_cache = '0' then  --write
@@ -149,7 +166,6 @@ begin
 		cache(selected_set).lastused <= std_logic(to_unsigned(present_block, 1)(0));
 		--wait until clk='1';
 		data_cache_ready <= '1';
-		DHc <= '0';
 
 	end if ;
 
