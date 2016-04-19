@@ -80,10 +80,10 @@ begin
 	data_cache_mem_out <= data_cache_mem_c;
 	-------------------------------------
 
-	--Conexions to mem bus
+	--Conections to mem bus
 	mem_address_m <= mem_address_c;
 
-	--Conexions to data bus
+	--Conections to data bus
 	bus_conex_in <= (data_cache_mem_c, others => (others => '0'));
 	data_mem_cache_c <= bus_conex_out(BUS_SIZE-1);
 	bus_conex_bir <= (data_bir_mem, others => (others => '0'));
