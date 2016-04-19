@@ -59,8 +59,6 @@ component memory is
 			rw : in std_logic;
 			address : in std_logic_vector (ADDRESS_WIDTH-1 downto 0);
 			data : inout std_logic_vector (DATA_WIDTH-1 downto 0);
-			--data_in : in std_logic_vector (DATA_WIDTH-1 downto 0);
-			--data_out : out std_logic_vector (DATA_WIDTH-1 downto 0);
 			data_ready : out std_logic);
 end component;
 
